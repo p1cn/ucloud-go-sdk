@@ -81,7 +81,7 @@ func (self *UcloudApiClient) HeadFile(fileName, bucketName string) (int64, bool,
 	case http.StatusNotFound:
 		return 0, false, nil
 	}
-	return 0, false, fmt.Errorf("Internal Server Error, ucloud resp: %+v", resp)
+	return 0, false, fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
 }
 
 func (self *UcloudApiClient) GetFile(fileName, bucketName string) ([]byte, error) {
@@ -95,7 +95,7 @@ func (self *UcloudApiClient) GetFile(fileName, bucketName string) ([]byte, error
 	case http.StatusOK:
 		return resp.Content, nil
 	}
-	return nil, fmt.Errorf("Internal Server Error, ucloud resp: %+v", resp)
+	return nil, fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
 }
 
 func (self *UcloudApiClient) PutFile(fileName, bucketName, contentType string, data []byte, retryNum int) error {
@@ -106,7 +106,7 @@ func (self *UcloudApiClient) PutFile(fileName, bucketName, contentType string, d
 	ori := retryNum
 	if resp.StatusCode != http.StatusOK {
 		if retryNum == 0 {
-			return fmt.Errorf("Internal Server Error, retry: %v, ucloud resp: %+v", ori+1, resp)
+			return fmt.Errorf("Internal Server Error, retry: %v, ucloud resp: %+v", ori+1, *resp)
 		}
 		time.Sleep(time.Second * 1)
 		retryNum--
