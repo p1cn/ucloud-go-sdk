@@ -13,7 +13,7 @@ import (
 var u *UcloudApiClient
 
 func init() {
-	pathToConfig := "../../../../config/sample.json"
+	pathToConfig := "../backend/config/sample.json"
 	if err := config.ParseGlobal(pathToConfig); err != nil {
 		log.Fatal(err)
 	}
