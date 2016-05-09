@@ -38,7 +38,7 @@ type SignParam struct {
 	CanonicalizedResource      string
 }
 
-func (self *SignParam) String() string {
+func (self SignParam) String() string {
 	return self.HttpVerb + "\n" +
 		self.ContentMd5 + "\n" +
 		self.ContentType + "\n" +
