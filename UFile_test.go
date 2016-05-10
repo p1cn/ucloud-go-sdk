@@ -13,7 +13,7 @@ import (
 var u *UcloudApiClient
 
 func init() {
-	pathToConfig := "../backend/config/sample.json"
+	pathToConfig := "../../../../../config/sample.json"
 	if err := config.ParseGlobal(pathToConfig); err != nil {
 		log.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestEnv(t *testing.T) {
 func TestPutFile(t *testing.T) {
 	fileName := randSeq(18) + ".jpg"
 	data := []byte(randSeq(12))
-	err := u.PutFile(fileName, bucketName, contentType, data, 1)
+	err := u.PutFile(fileName, bucketName, contentType, data)
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.FailNow()
@@ -71,7 +71,7 @@ func TestGetNonexistFile(t *testing.T) {
 func TestGetExistFile(t *testing.T) {
 	fileName := randSeq(18) + ".jpg"
 	data := []byte(randSeq(12))
-	err := u.PutFile(fileName, bucketName, contentType, data, 1)
+	err := u.PutFile(fileName, bucketName, contentType, data)
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.FailNow()
@@ -87,7 +87,7 @@ func TestGetExistFile(t *testing.T) {
 func TestHeadFileSucc(t *testing.T) {
 	fileName := randSeq(18) + ".jpg"
 	data := []byte(randSeq(12))
-	err := u.PutFile(fileName, bucketName, contentType, data, 1)
+	err := u.PutFile(fileName, bucketName, contentType, data)
 	if err != nil {
 		t.Errorf("%+v", err)
 		t.FailNow()
