@@ -81,7 +81,7 @@ func (self *UcloudApiClient) HeadFile(fileName, bucketName string) (int64, bool,
 	case http.StatusNotFound:
 		return 0, false, nil
 	}
-	return 0, false, fmt.Errorf("Internal Server Error, ucloud resp: %+v", resp)
+	return 0, false, fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
 }
 
 func (self *UcloudApiClient) GetFile(fileName, bucketName string) ([]byte, error) {
@@ -95,23 +95,21 @@ func (self *UcloudApiClient) GetFile(fileName, bucketName string) ([]byte, error
 	case http.StatusOK:
 		return resp.Content, nil
 	}
-	return nil, fmt.Errorf("Internal Server Error, ucloud resp: %+v", resp)
+	return nil, fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
 }
 
-func (self *UcloudApiClient) PutFile(fileName, bucketName, contentType string, data []byte, retryNum int) error {
+func (self *UcloudApiClient) PutFile(fileName, bucketName, contentType string, data []byte) error {
 	resp, err := self.doHttpRequest(fileName, bucketName, "PUT", contentType, string(data))
-	if err != nil {
-		return err
-	}
-	ori := retryNum
-	if resp.StatusCode != http.StatusOK {
-		if retryNum == 0 {
-			return fmt.Errorf("Internal Server Error, retry: %v, ucloud resp: %+v", ori+1, resp)
-		}
+	if err != nil || resp.StatusCode != http.StatusOK {
 		time.Sleep(time.Second * 1)
-		retryNum--
-		if retryNum >= 0 {
-			return self.PutFile(fileName, bucketName, contentType, data, retryNum)
+		resp, err := self.doHttpRequest(fileName, bucketName, "PUT", contentType, string(data))
+		if err != nil {
+			return fmt.Errorf("Internal Server Error: %+v", err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			if resp.StatusCode != http.StatusOK {
+				return fmt.Errorf("Internal Server Error: %+v", err)
+			}
 		}
 	}
 	return nil
