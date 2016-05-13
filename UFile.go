@@ -108,7 +108,7 @@ func (self *UcloudApiClient) PutFile(fileName, bucketName, contentType string, d
 		}
 		if resp.StatusCode != http.StatusOK {
 			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("Internal Server Error: %+v", err)
+				return fmt.Errorf("Internal Server Error: %+v", resp)
 			}
 		}
 	}
