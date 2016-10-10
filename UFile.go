@@ -64,10 +64,7 @@ type UcloudResponse struct {
 }
 
 func getURL(fileName, bucketName, httpVerb string) string {
-	if httpVerb == "PUT" {
-		return "https://" + bucketName + ".ufilesec.ucloud.cn" + "/" + fileName
-	}
-	return "https://" + bucketName + ".ufilesec.ucloud.com.cn" + "/" + fileName
+	return "https://" + bucketName + ".cn-bj.ufileos.com/" + fileName
 }
 
 func (self *UcloudApiClient) HeadFile(fileName, bucketName string) (int64, bool, error) {
