@@ -16,11 +16,12 @@ import (
 type UcloudApiClient struct {
 	publicKey  string
 	privateKey string
+	proxyURL   string
 	conn       *http.Client
 }
 
-func NewUcloudApiClient(publicKey, privateKey string) *UcloudApiClient {
-	return &UcloudApiClient{publicKey, privateKey, &http.Client{Timeout: time.Minute}}
+func NewUcloudApiClient(publicKey, privateKey, proxyURL string) *UcloudApiClient {
+	return &UcloudApiClient{publicKey, privateKey, proxyURL, &http.Client{Timeout: time.Minute}}
 }
 
 func signatureUFile(privateKey string, stringToSign string) string {
@@ -61,10 +62,6 @@ type UcloudResponse struct {
 	RetCode       int
 	ErrMsg        string
 	Content       []byte
-}
-
-func getURL(fileName, bucketName, httpVerb string) string {
-	return "https://" + bucketName + ".cn-bj.ufileos.com/" + fileName
 }
 
 func (self *UcloudApiClient) HeadFile(fileName, bucketName string) (int64, bool, error) {
@@ -143,11 +140,11 @@ func (self *UcloudApiClient) doHttpRequest(fileName, bucketName, httpVerb string
 	var httpReq *http.Request
 	var err error
 
-	url := getURL(fileName, bucketName, httpVerb)
 	signParam := &SignParam{
 		HttpVerb:              httpVerb,
 		CanonicalizedResource: "/" + bucketName + "/" + fileName,
 	}
+	u := fmt.Sprintf("%s/%s", self.proxyURL, fileName)
 	if httpVerb == "PUT" {
 		if len(args) != 2 {
 			return nil, fmt.Errorf("wrong number of arguments. Expected: %v, Got %v", 2, len(args))
@@ -155,17 +152,18 @@ func (self *UcloudApiClient) doHttpRequest(fileName, bucketName, httpVerb string
 		contentType := args[0]
 		data := []byte(args[1])
 		signParam.ContentType = contentType
-		httpReq, err = http.NewRequest(httpVerb, url, bytes.NewBuffer(data))
+		httpReq, err = http.NewRequest(httpVerb, u, bytes.NewBuffer(data))
 		if err != nil {
 			return nil, err
 		}
 		httpReq.Header.Add("Content-Type", contentType)
 	} else {
-		httpReq, err = http.NewRequest(httpVerb, url, nil)
+		httpReq, err = http.NewRequest(httpVerb, u, nil)
 		if err != nil {
 			return nil, err
 		}
 	}
+	httpReq.Host = fmt.Sprintf("%s.ufile.ucloud.cn", bucketName)
 	httpReq.Header.Add("Authorization", self.genUFileAuth(signParam))
 
 	httpResp, err := self.conn.Do(httpReq)

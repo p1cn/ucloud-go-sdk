@@ -13,7 +13,7 @@ import (
 var u *UcloudApiClient
 
 func init() {
-	pathToConfig := "../../../../../config/sample.json"
+	pathToConfig := "/Users/yule/backend/config/sample.json"
 	if err := config.ParseGlobal(pathToConfig); err != nil {
 		log.Fatal(err)
 	}
@@ -21,6 +21,7 @@ func init() {
 	u = NewUcloudApiClient(
 		config.Conf.Cloud.UcloudStorageDriver.PublicKey,
 		config.Conf.Cloud.UcloudStorageDriver.PrivateKey,
+		config.Conf.Cloud.UcloudStorageDriver.ProxyURL.URL().String(),
 	)
 }
 
