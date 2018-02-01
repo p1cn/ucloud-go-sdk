@@ -10,18 +10,37 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
+)
+
+const (
+	httpUrlPrefix = "www."
 )
 
 type UcloudApiClient struct {
 	publicKey  string
 	privateKey string
 	proxyURL   string
+	baseHost   string
 	conn       *http.Client
 }
 
 func NewUcloudApiClient(publicKey, privateKey, proxyURL string) *UcloudApiClient {
-	return &UcloudApiClient{publicKey, privateKey, proxyURL, &http.Client{Timeout: time.Minute}}
+	host, err := bucketBaseHost(proxyURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return &UcloudApiClient{publicKey,
+		privateKey,
+		proxyURL,
+		host,
+		&http.Client{
+			Timeout: time.Minute,
+		},
+	}
 }
 
 func signatureUFile(privateKey string, stringToSign string) string {
@@ -163,7 +182,7 @@ func (self *UcloudApiClient) doHttpRequest(fileName, bucketName, httpVerb string
 			return nil, err
 		}
 	}
-	httpReq.Host = fmt.Sprintf("%s.ufile.ucloud.cn", bucketName)
+	httpReq.Host = fmt.Sprintf("%s.%s", bucketName, self.baseHost)
 	httpReq.Header.Add("Authorization", self.genUFileAuth(signParam))
 
 	httpResp, err := self.conn.Do(httpReq)
@@ -173,4 +192,15 @@ func (self *UcloudApiClient) doHttpRequest(fileName, bucketName, httpVerb string
 	defer httpResp.Body.Close()
 
 	return parseHttpResp(httpResp, httpVerb)
+}
+
+func bucketBaseHost(proxyURL string) (string, error) {
+	url, err := url.Parse(proxyURL)
+	if err != nil {
+		return "", err
+	}
+
+	host := url.Hostname()
+
+	return strings.TrimLeft(host, httpUrlPrefix), nil
 }
