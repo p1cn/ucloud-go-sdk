@@ -84,17 +84,8 @@ type UcloudResponse struct {
 }
 
 func (self *UcloudApiClient) HeadFile(fileName, bucketName string) (int64, bool, error) {
-	resp, err := self.doHttpRequest(fileName, bucketName, "HEAD")
-	if err != nil {
-		return 0, false, err
-	}
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return resp.ContentLength, true, nil
-	case http.StatusNotFound:
-		return 0, false, nil
-	}
-	return 0, false, fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
+	len, exist, _, err := self.HeadFileWithEtag(fileName, bucketName)
+	return len, exist, err
 }
 
 func (self *UcloudApiClient) GetFile(fileName, bucketName string) ([]byte, error) {
@@ -203,4 +194,18 @@ func bucketBaseHost(proxyURL string) (string, error) {
 	host := url.Hostname()
 
 	return strings.TrimLeft(host, httpUrlPrefix), nil
+}
+
+func (self *UcloudApiClient) HeadFileWithEtag(fileName, bucketName string) (int64, bool, string, error) {
+	resp, err := self.doHttpRequest(fileName, bucketName, "HEAD")
+	if err != nil {
+		return 0, false, "", err
+	}
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return resp.ContentLength, true, resp.Etag, nil
+	case http.StatusNotFound:
+		return 0, false, "", nil
+	}
+	return 0, false, "", fmt.Errorf("Internal Server Error, ucloud resp: %+v", *resp)
 }
