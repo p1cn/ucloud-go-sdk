@@ -2,20 +2,40 @@ package ucloud
 
 import (
 	"errors"
+	"flag"
 	"log"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
-	"backend/config"
+	"gitlab.p1staff.com/backend/tantan-backend-cloud/config"
 )
 
-var u *UcloudApiClient
+var (
+	u *UcloudApiClient
+
+	confPath = flag.String("conf", "./config.json", "config file patch")
+	bucket   = flag.String("bucket", "putong-test2-image-original", "bucket name, default : putong-test2-image-original")
+)
+
+var (
+	letters     = []rune("abCdEfGhIjKlMnOpQrStUvWxYz")
+	bucketName  = "putong-test2-image-original"
+	contentType = "image/jpeg"
+)
 
 func init() {
-	pathToConfig := "/Users/yule/backend/config/sample.json"
-	if err := config.ParseGlobal(pathToConfig); err != nil {
+	flag.Parse()
+
+	if err := config.ParseServiceConfig("ufile_test", *confPath); err != nil {
 		log.Fatal(err)
+	}
+
+	bucketName = *bucket
+
+	if strings.TrimSpace(bucketName) == "" {
+		log.Fatal("Empty Bucket Name")
 	}
 
 	u = NewUcloudApiClient(
@@ -23,16 +43,6 @@ func init() {
 		config.Conf.Cloud.UcloudStorageDriver.PrivateKey,
 		config.Conf.Cloud.UcloudStorageDriver.ProxyURL.URL().String(),
 	)
-}
-
-var letters []rune
-
-var bucketName, contentType string
-
-func init() {
-	letters = []rune("abCdEfGhIjKlMnOpQrStUvWxYz")
-	bucketName = "putong-test2-image-original"
-	contentType = "image/jpeg"
 }
 
 func randSeq(n int) string {
