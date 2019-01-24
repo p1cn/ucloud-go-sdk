@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	httpUrlPrefix = "www."
+	httpUrlPrefix   = "www."
+	ContentTypeJson = "application/json"
 )
 
 type UcloudApiClient struct {
@@ -139,10 +140,16 @@ func parseHttpResp(httpResp *http.Response, httpVerb string) (*UcloudResponse, e
 	if resp.StatusCode == http.StatusNotFound && httpVerb == "HEAD" {
 		return resp, nil
 	}
-	err = json.Unmarshal(body, resp)
-	if err != nil {
-		return nil, err
+
+	// Only json content unmarshal the body
+	if resp.ContentType == ContentTypeJson && resp.ContentLength > 0 {
+		if err = json.Unmarshal(body, resp); err != nil {
+			return nil, err
+		}
+	} else {
+		resp.Content = body
 	}
+
 	return resp, nil
 }
 
